@@ -1,0 +1,146 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 33% 98%;
+    --foreground: 220 13% 13%;
+
+    --card: 30 33% 98%;
+    --card-foreground: 220 13% 13%;
+
+    --popover: 30 33% 98%;
+    --popover-foreground: 220 13% 13%;
+
+    --primary: 220 13% 13%;
+    --primary-foreground: 30 33% 98%;
+
+    --secondary: 34 23% 83%;
+    --secondary-foreground: 220 13% 13%;
+
+    --muted: 30 10% 93%;
+    --muted-foreground: 220 9% 40%;
+
+    --accent: 343 31% 66%;
+    --accent-foreground: 30 33% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 30 33% 98%;
+
+    --border: 30 10% 90%;
+    --input: 30 10% 90%;
+    --ring: 175 39% 46%;
+
+    --radius: 0.4rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ivory text-charcoal;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-ivory;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-champagne rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dustyRose;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  .btn-primary {
+    @apply bg-mutedTeal text-white px-6 py-3 rounded transition-all duration-300 hover:bg-mutedTeal/90 focus:ring-2 focus:ring-mutedTeal/50 focus:outline-none;
+  }
+  
+  .btn-secondary {
+    @apply bg-dustyRose text-white px-6 py-3 rounded transition-all duration-300 hover:bg-dustyRose/90 focus:ring-2 focus:ring-dustyRose/50 focus:outline-none;
+  }
+  
+  .btn-outline {
+    @apply border border-charcoal text-charcoal bg-transparent px-6 py-3 rounded transition-all duration-300 hover:bg-charcoal/5 focus:ring-2 focus:ring-charcoal/20 focus:outline-none;
+  }
+
+  .heading-xl {
+    @apply text-4xl md:text-5xl font-light tracking-tight;
+  }
+  
+  .heading-lg {
+    @apply text-3xl md:text-4xl font-light;
+  }
+  
+  .heading-md {
+    @apply text-2xl md:text-3xl font-light;
+  }
+  
+  .input-field {
+    @apply w-full bg-white/70 backdrop-blur-sm border border-champagne/50 rounded px-4 py-3 focus:outline-none focus:ring-2 focus:ring-mutedTeal/30 transition-all duration-300;
+  }
+  
+  .filter-chip {
+    @apply px-4 py-2 rounded-full text-sm bg-champagne/30 text-charcoal border border-champagne/50 transition-all duration-300 hover:bg-champagne/50 cursor-pointer;
+  }
+  
+  .filter-chip.active {
+    @apply bg-mutedTeal text-white border-mutedTeal;
+  }
+}
+
+@keyframes fadeUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUpIn 0.8s ease forwards;
+}
+
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
