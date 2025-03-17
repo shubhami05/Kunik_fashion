@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, password }),
       });
+      console.log(response);
 
       if (!response.ok) throw new Error("Invalid credentials");
 
