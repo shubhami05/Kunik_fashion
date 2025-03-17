@@ -68,7 +68,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="text-2xl font-extralight text-charcoal">
-            <span className="font-extrabold">KUSHIK</span>FASHION
+            <span className="font-extrabold">KUNIK</span>FASHION
           </Link>
 
           {/* Desktop Navigation */}

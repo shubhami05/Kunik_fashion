@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="text-2xl font-light text-charcoal mb-4 inline-block">
-              <span className="font-extrabold">KUSHIK</span>FASHION
+              <span className="font-extrabold">KUNIK</span>FASHION
             </Link>
             <p className="text-gray-600 mb-6">
               Premium clothing that combines elegance with modern aesthetics. Designed for comfort and style.
@@ -112,7 +112,7 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="border-t border-gray-200 mt-12 pt-8 text-center text-gray-500 text-sm">
-          <p>© {new Date().getFullYear()} ELEGANT. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} KUNIK FASHION. All rights reserved.</p>
         </div>
       </div>
     </footer>
