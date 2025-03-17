@@ -5,7 +5,6 @@ export type ProductVariation = {
 };
 
 export const categories = [
-  "All",
   "T-shirts",
   "Shirts",
   "Textured Knitwear",

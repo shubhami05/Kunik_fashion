@@ -229,7 +229,7 @@ const ProductDetail: React.FC = () => {
 
               <h1 className="heading-lg mt-2 mb-4">{product.name}</h1>
 
-              <div className="flex items-center mb-4">
+              {/* <div className="flex items-center mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -240,7 +240,7 @@ const ProductDetail: React.FC = () => {
                   ))}
                 </div>
                 <span className="ml-2 text-gray-600">(24 reviews)</span>
-              </div>
+              </div> */}
 
               <div className="flex items-center mb-6">
                 <span className="text-2xl font-medium text-charcoal">

@@ -19,6 +19,20 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/featured", async (req, res) => {
+  try {
+    const featuredProducts = await Product.find({ isFeatured: true });
+    
+    if (!featuredProducts.length) {
+      return res.status(204).json({ message: "No featured products found" });
+    }
+
+    res.json(featuredProducts);
+  } catch (error) {
+    console.error("Error fetching featured products:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 router.get("/:id", async (req, res) => {
   try {

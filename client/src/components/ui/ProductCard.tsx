@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Product } from "@/lib/data";
 
 interface ProductCardProps {
   product: Product;

@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="text-2xl font-light text-charcoal mb-4 inline-block">
-              <span className="font-medium">ELEG</span>ANT
+              <span className="font-extrabold">KUSHIK</span>FASHION
             </Link>
             <p className="text-gray-600 mb-6">
               Premium clothing that combines elegance with modern aesthetics. Designed for comfort and style.

@@ -5,6 +5,7 @@ import { useProducts } from "@/context/ProductContext";
 import { Loader2 } from "lucide-react";
 import { Product } from "@/lib/data";
 
+
 interface ProductListProps {
   limit?: number;
   title?: string;
@@ -21,7 +22,8 @@ const ProductList: React.FC<ProductListProps> = ({
   const [currentLimit, setCurrentLimit] = useState(limit || 8);
 
   useEffect(() => {
-    setVisibleProducts(filteredProducts.slice(0, currentLimit));
+    const pro = filteredProducts.slice(0, currentLimit);
+    setVisibleProducts(pro);
   }, [filteredProducts, currentLimit]);
 
   const loadMore = () => {

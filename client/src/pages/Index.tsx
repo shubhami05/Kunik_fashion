@@ -18,6 +18,7 @@ const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
 
 import { HeroImage } from "@/lib/data";
+import ProductFeatured from "@/components/ui/ProductFeatured";
 
 const Index: React.FC = () => {
   // const heroImages = getHeroImages();
@@ -91,11 +92,12 @@ const Index: React.FC = () => {
       {/* Featured Products Section */}
       <section id="featured" className="bg-warmSand/10 py-20">
         <AnimatedSection>
-          <ProductList
+          <ProductFeatured/>
+          {/* <ProductList
             title="Featured Products"
             subtitle="Our most popular pieces, selected for their exceptional design and quality."
             limit={4}
-          />
+          /> */}
         </AnimatedSection>
       </section>
 

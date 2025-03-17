@@ -4,23 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Menu, X, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 const Navbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, isAdmin, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  useScrollToTop();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -36,31 +29,40 @@ const Navbar: React.FC = () => {
     
     // Check if we're not on the home page
     if (location.pathname !== '/') {
-      // Navigate to home page and scroll after a small delay
+      // Navigate to home page first
       navigate('/');
+      // Increase timeout to ensure DOM is ready
       setTimeout(() => {
         const element = document.getElementById(id);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
-      }, 100);
+      }, 500); // Increased delay for mobile and scroll to top
       return;
     }
     
-    // If we're already on home page, just scroll to the section
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // If we're already on home page, add a small delay for mobile menu to close
+    setTimeout(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setIsMobileMenuOpen(false); // Close mobile menu
+    navigate('/'); // Navigate to home page
+    toast({
+      title: "Logged out successfully",
+      variant: "default",
+    });
   };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/80 backdrop-blur-md py-3 shadow-sm"
-          : "bg-transparent py-5"
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md py-3 shadow-sm"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
@@ -106,7 +108,7 @@ const Navbar: React.FC = () => {
                   <Heart size={20} />
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="text-charcoal hover:text-dustyRose transition-colors duration-300"
                 >
                   Logout
@@ -158,16 +160,16 @@ const Navbar: React.FC = () => {
                 Home
               </button>
               <button
-                onClick={() => scrollToSection('products')}
-                className="p-2 text-left text-charcoal hover:text-mutedTeal transition-colors duration-300"
-              >
-                Collection
-              </button>
-              <button
                 onClick={() => scrollToSection('featured')}
                 className="p-2 text-left text-charcoal hover:text-mutedTeal transition-colors duration-300"
               >
                 Featured
+              </button>
+              <button
+                onClick={() => scrollToSection('products')}
+                className="p-2 text-left text-charcoal hover:text-mutedTeal transition-colors duration-300"
+              >
+                Collection
               </button>
               {isAdmin && (
                 <Link
@@ -186,7 +188,7 @@ const Navbar: React.FC = () => {
                     Wishlist
                   </Link>
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="p-2 text-left text-charcoal hover:text-dustyRose transition-colors duration-300"
                   >
                     Logout

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { categories } from "@/lib/data";
@@ -67,12 +66,21 @@ const ProductFilter: React.FC = () => {
         
         {/* Categories */}
         <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start pt-2">
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => handleCategoryChange("all")}
+            className={`filter-chip ${currentCategory === "all" ? "active" : ""}`}
+          >
+            All
+          </motion.button>
           {categories.map((category, index) => (
             <motion.button
               key={category}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              transition={{ duration: 0.3, delay: (index + 1) * 0.05 }}
               onClick={() => handleCategoryChange(category)}
               className={`filter-chip ${currentCategory === category ? "active" : ""}`}
             >

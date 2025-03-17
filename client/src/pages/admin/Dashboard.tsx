@@ -70,7 +70,9 @@ const Dashboard: React.FC = () => {
           <QuickActions />
           
           {/* Recent Products Component */}
-          <RecentProducts products={products}/>
+          <RecentProducts products={products.map(product => ({
+            ...product
+          }))}/>
         </div>
       </main>
       

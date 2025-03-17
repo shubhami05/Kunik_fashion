@@ -512,9 +512,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                   </div> */}
 
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Stock Variations*
-                    </label>
+                  
                     <VariationManager 
                       variations={variations}
                       availableColors={availableColors}

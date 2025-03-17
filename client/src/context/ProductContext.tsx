@@ -1,25 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-
+import { Product } from "@/lib/data";
 export type ProductVariation = {
   size: string;
   color: string;
   stock: number;
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  images: string[];
-  category: string;
-  isNew?: boolean;
-  isFeatured?: boolean;
-  stock: number;
-  variations: ProductVariation[];
-};
+
 
 type ProductContextType = {
   products: Product[];
