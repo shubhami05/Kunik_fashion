@@ -90,9 +90,9 @@ const Index: React.FC = () => {
       </section>
 
       {/* Featured Products Section */}
-      <section id="featured" className="bg-warmSand/10 py-20">
+      <section id="featured" className="bg-warmSand/10">
         <AnimatedSection>
-          <ProductFeatured/>
+          <ProductFeatured />
           {/* <ProductList
             title="Featured Products"
             subtitle="Our most popular pieces, selected for their exceptional design and quality."
