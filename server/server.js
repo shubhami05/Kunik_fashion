@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:8080',
   process.env.FRONTEND_URI,
+  '*'
 ];
 
 // Middleware
