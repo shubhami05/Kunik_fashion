@@ -14,10 +14,16 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:5173';
 
 // Middleware
+app.use(cors({
+  origin: FRONTEND_URI,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
-app.use(cors());
 
 // MongoDB Connection
 // mongoose.connect(process.env.MONGO_URI, {
@@ -39,4 +45,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/hero", heroRoutes);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
