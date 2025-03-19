@@ -381,7 +381,7 @@ const ProductDetail: React.FC = () => {
                   <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                     <Button
                       onClick={handleDirectOrder}
-                      className="flex-1 bg-mutedTeal text-white hover:bg-mutedTeal/90"
+                      className="sm:flex-1 bg-mutedTeal text-white hover:bg-mutedTeal/90"
                       size="lg"
                       disabled={currentStock === 0}
                     >
