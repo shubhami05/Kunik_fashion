@@ -21,77 +21,96 @@ import ProductDetail from "./pages/ProductDetail";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import HeroImages from "./pages/admin/HeroImages";
 import CategoryManager from "@/components/admin/CategoryManager";// Ensure this file exists and the path is correct
+import { LucideLoaderPinwheel } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <ProductProvider>
-          <CartProvider>
-            <WishlistProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth/login" element={<Login />} />
-                  <Route path="/auth/register" element={<Register />} />
-                  {/* <Route path="/auth/admin-login" element={<AdminLogin />} /> */}
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/product/:id" element={<ProductDetail />} />
-                  
-                  <Route
-                    path="/admin/dashboard"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/products"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminProducts />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/products/add"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminAddProduct />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/products/edit/:id"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <AdminEditProduct />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/hero-images"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <HeroImages />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/categories"
-                    element={
-                      <ProtectedRoute requireAdmin>
-                        <CategoryManager />
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* <Route
+const App = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate a loading delay (e.g., fetching data)
+    const timer = setTimeout(() => {
+      setLoading(false); // Set loading to false after 2 seconds
+    }, 2000); // Adjust the time as needed
+
+    return () => clearTimeout(timer); // Cleanup the timer on unmount
+  }, []);
+
+  if (loading) {
+    return <div className="h-screen w-screen flex justify-center items-center">
+      <LucideLoaderPinwheel className="h-10 w-10 animate-spin text-cyan-800" />
+    </div>
+  }
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <ProductProvider>
+            <CartProvider>
+              <WishlistProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth/login" element={<Login />} />
+                    <Route path="/auth/register" element={<Register />} />
+                    {/* <Route path="/auth/admin-login" element={<AdminLogin />} /> */}
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/product/:id" element={<ProductDetail />} />
+
+                    <Route
+                      path="/admin/dashboard"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/products"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminProducts />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/products/add"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminAddProduct />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/products/edit/:id"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <AdminEditProduct />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/hero-images"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <HeroImages />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/categories"
+                      element={
+                        <ProtectedRoute requireAdmin>
+                          <CategoryManager />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* <Route
                     path="/admin/approvals"
                     element={
                       <ProtectedRoute requireAdmin>
@@ -99,16 +118,17 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   /> */}
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </WishlistProvider>
-          </CartProvider>
-        </ProductProvider>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </WishlistProvider>
+            </CartProvider>
+          </ProductProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
