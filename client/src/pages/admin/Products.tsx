@@ -1,122 +1,113 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Key } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import {
-  Plus,
-  Search,
-  Filter,
-  Trash2,
-  Edit,
-  ChevronDown,
-  ChevronUp,
-  ArrowUpDown
-} from "lucide-react";
+import { Plus, Search, Trash2, Edit } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useProducts } from "@/context/ProductContext";
-import { categories, getTotalStock, Product } from "@/lib/data";
+import { Product } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-
-// export type ProductVariation = {
-//   size: string;
-//   color: string;
-//   stock: number;
-// };
-
-// export type Product = {
-//   id: string;
-//   name: string;
-//   description: string;
-//   price: number;
-//   originalPrice?: number;
-//   images: string[];
-//   category: string;
-//   isNew?: boolean;
-//   isFeatured?: boolean;
-//   stock: number;
-//   variations: ProductVariation[];
-// };
+import useCloudinaryUpload from "@/hooks/useCloudinaryUpload";
 
 const AdminProducts: React.FC = () => {
-
-  // const BASE_URL = 'http://localhost:5000'
-
   const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
-
+  const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const { products, deleteProduct, sortProducts, searchProducts } = useProducts();
+  const [categories, setCategories] = useState<{
+    _id: Key; name: string
+  }[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"price-asc" | "price-desc" | "name-asc" | "name-desc" | "">("");
   const { toast } = useToast();
-
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Initialize filtered products
-  useEffect(() => {
-    setFilteredProducts(products);
-  }, [products]);
+  const { deleteImage } = useCloudinaryUpload();
 
   // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    
-    // Apply search and category filters together
-    const filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(term);
-      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-    
+
+    let filtered = [...products];
+
+    // Apply category filter if active
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Then apply search filter
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(term) ||
+      product.description.toLowerCase().includes(term) ||
+      product.category.toLowerCase().includes(term)
+    );
+
     setFilteredProducts(filtered);
   };
 
-  // Handle category filter
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = e.target.value;
+  const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    
-    // Apply category and search filters together
-    const filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
-                          product.description.toLowerCase().includes(searchTerm) ||
-                          product.category.toLowerCase().includes(searchTerm);
-      const matchesCategory = category === "all" || product.category === category;
-      return matchesSearch && matchesCategory;
-    });
-    
+
+    let filtered = [...products];
+
+    // Apply category filter
+    if (category !== "all") {
+      filtered = filtered.filter(product => product.category === category);
+    }
+
+    // Apply existing search if any
+    if (searchTerm) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     setFilteredProducts(filtered);
   };
 
-  // Handle sorting
-  const handleSort = (type: "price-asc" | "price-desc" | "name-asc" | "name-desc") => {
-    setSortOrder(type);
-    
-    const sorted = [...filteredProducts].sort((a, b) => {
-      switch (type) {
-        case "price-asc":
-          return a.price - b.price;
-        case "price-desc":
-          return b.price - a.price;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "name-desc":
-          return b.name.localeCompare(a.name);
-        default:
-          return 0;
-      }
-    });
-    
-    setFilteredProducts(sorted);
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/products`);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      const data = await response.json();
+      setProducts(data);
+      setFilteredProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh products",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/categories`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load categories",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
 
-    // console.log("Sending DELETE request for ID:", id); // Debugging log
-
     try {
+      // Find the product to get its images
+      const product = products.find(p => p.id === id);
+      if (!product) return;
+
+      // Delete all images from Cloudinary first
+      const deletePromises = product.images.map(imageUrl => deleteImage(imageUrl));
+      await Promise.all(deletePromises);
+
+      // Then delete the product from your backend
       const response = await fetch(`${BASE_URL}/api/products/${id}`, {
         method: "DELETE",
       });
@@ -127,15 +118,13 @@ const AdminProducts: React.FC = () => {
         throw new Error(data.error || "Failed to delete product");
       }
 
-      console.log("Deleted product:", data);
       toast({
         title: "Product deleted",
         description: `${name} has been removed from your inventory`,
       });
 
-      // Refresh product list or navigate
-    } catch (error) {
-      // console.error("Error deleting product:", error);
+      fetchProducts();
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to delete product",
@@ -144,6 +133,15 @@ const AdminProducts: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const init = async () => {
+      await Promise.all([fetchProducts(), fetchCategories()]);
+    };
+
+    init();
+    const intervalId = setInterval(fetchProducts, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -151,12 +149,11 @@ const AdminProducts: React.FC = () => {
 
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
+          {/* Header Section */}
           <div className="flex flex-wrap items-center justify-between mb-8">
             <div>
               <h1 className="heading-lg mb-2">Products</h1>
-              <p className="text-gray-600">
-                Manage your product inventory
-              </p>
+              <p className="text-gray-600">Manage your product inventory</p>
             </div>
 
             <Link
@@ -168,116 +165,51 @@ const AdminProducts: React.FC = () => {
             </Link>
           </div>
 
-          {/* Search and Filters */}
+          {/* Search Bar */}
           <div className="bg-white rounded-lg shadow-sm border border-champagne/20 p-4 mb-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-              <div className="relative w-full md:w-80 mb-4 md:mb-0">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  className="input-field pl-10 w-full"
-                />
+            <div className="relative w-full md:w-80">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-gray-400" />
               </div>
-
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center text-charcoal hover:text-mutedTeal transition-colors"
-              >
-                <Filter size={18} className="mr-1" />
-                Filters
-                {showFilters ? (
-                  <ChevronUp size={18} className="ml-1" />
-                ) : (
-                  <ChevronDown size={18} className="ml-1" />
-                )}
-              </button>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="input-field pl-10 w-full"
+              />
             </div>
+          </div>
 
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-100"
+          {/* Category Tabs */}
+          <div className="mb-6 overflow-x-auto">
+            <div className="inline-flex rounded-lg border border-champagne/20 bg-white p-1 min-w-full">
+              <button
+                onClick={() => handleCategoryChange("all")}
+                className={`px-4 py-2 text-sm rounded-md transition-colors ${selectedCategory === "all"
+                    ? "bg-mutedTeal text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                  }`}
               >
-                <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    value={selectedCategory}
-                    onChange={handleCategoryChange}
-                    className="input-field w-full"
+                All Products
+              </button>
+              {categories.length > 0 ? (
+                categories.map((category) => (
+                  <button
+                    key={category._id}
+                    onClick={() => handleCategoryChange(category.name)}
+                    className={`px-4 py-2 text-sm rounded-md transition-colors ${selectedCategory === category.name
+                        ? "bg-mutedTeal text-white"
+                        : "text-gray-600 hover:bg-gray-50"
+                      }`}
                   >
-                    <option value="all">All Categories</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
-                    Sort By
-                  </label>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleSort("price-asc")}
-                      className={`px-3 py-2 text-sm rounded-md border ${sortOrder === "price-asc"
-                        ? "bg-mutedTeal/10 border-mutedTeal text-mutedTeal"
-                        : "border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                      Price: Low to High
-                    </button>
-                    <button
-                      onClick={() => handleSort("price-desc")}
-                      className={`px-3 py-2 text-sm rounded-md border ${sortOrder === "price-desc"
-                        ? "bg-mutedTeal/10 border-mutedTeal text-mutedTeal"
-                        : "border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                      Price: High to Low
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleSort("name-asc")}
-                      className={`px-3 py-2 text-sm rounded-md border ${sortOrder === "name-asc"
-                        ? "bg-mutedTeal/10 border-mutedTeal text-mutedTeal"
-                        : "border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                      A-Z
-                    </button>
-                    <button
-                      onClick={() => handleSort("name-desc")}
-                      className={`px-3 py-2 text-sm rounded-md border ${sortOrder === "name-desc"
-                        ? "bg-mutedTeal/10 border-mutedTeal text-mutedTeal"
-                        : "border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                      Z-A
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                    {category.name}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-gray-500">Loading categories...</div>
+              )}
+            </div>
           </div>
 
           {/* Products Table */}
@@ -295,7 +227,6 @@ const AdminProducts: React.FC = () => {
                     <th className="px-4 sm:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <div className="flex items-center">
                         Price
-                        <ArrowUpDown size={14} className="ml-1" />
                       </div>
                     </th>
                     <th className="hidden sm:table-cell px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -312,18 +243,20 @@ const AdminProducts: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-4 sm:px-6 py-6 sm:py-4 whitespace-normal sm:whitespace-nowrap">
-                        <div className="flex items-start sm:items-center">
-                          <div className="h-16 w-16 sm:h-12 sm:w-12 flex-shrink-0 rounded overflow-hidden mr-3">
+                      <td className="px-4 sm:px-6 py-4 whitespace-normal">
+                        <div className="flex items-start sm:items-center gap-3 max-w-md">
+                          <div className="h-16 w-16 sm:h-12 sm:w-12 flex-shrink-0 rounded overflow-hidden">
                             <img
                               src={product.images[0]}
                               alt={product.name}
                               className="h-full w-full object-cover"
                             />
                           </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                            <div className="hidden sm:block text-xs text-gray-500">ID: {product.id}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </div>
+
                           </div>
                         </div>
                       </td>
@@ -345,10 +278,10 @@ const AdminProducts: React.FC = () => {
                         <span
                           className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                         ${product.variations.reduce((total, variation) => total + variation.stock, 0) > 5
-                            ? 'bg-green-100 text-green-800'
-                            : product.variations.reduce((total, variation) => total + variation.stock, 0) > 0
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'}`}
+                              ? 'bg-green-100 text-green-800'
+                              : product.variations.reduce((total, variation) => total + variation.stock, 0) > 0
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'}`}
                         >
                           {product.variations.reduce((total, variation) => total + variation.stock, 0) > 0
                             ? product.variations.reduce((total, variation) => total + variation.stock, 0)
@@ -377,12 +310,15 @@ const AdminProducts: React.FC = () => {
               </table>
             </div>
 
+            {/* Empty State */}
             {filteredProducts.length === 0 && (
               <div className="text-center py-10">
                 <p className="text-gray-500">
-                  {searchTerm || selectedCategory !== "all" 
-                    ? "No products match your search criteria" 
-                    : "No products found"}
+                  {searchTerm
+                    ? "No products match your search criteria"
+                    : selectedCategory !== "all"
+                      ? `No products found in ${selectedCategory} category`
+                      : "No products found"}
                 </p>
               </div>
             )}

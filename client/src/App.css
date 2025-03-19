@@ -40,3 +40,11 @@
 .read-the-docs {
   color: #888;
 }
+
+.filter-tag {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-sm bg-mutedTeal/10 text-mutedTeal;
+}
+
+.filter-tag button {
+  @apply ml-2 hover:text-mutedTeal/80 transition-colors;
+}

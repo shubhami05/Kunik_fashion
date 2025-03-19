@@ -12,10 +12,6 @@ const AdminApprovals = () => {
   const [loading, setLoading] = useState(false);
   const [activeRequest, setActiveRequest] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   // Fetch pending admin requests when component mounts
-  //   fetchPendingAdminRequests();
-  // }, [fetchPendingAdminRequests]);
 
   const handleApprove = async (userId: string) => {
     setLoading(true);
@@ -71,55 +67,7 @@ const AdminApprovals = () => {
       <div className="container mx-auto p-6">
         <h2 className="text-xl font-semibold mb-4">Pending Admin Requests</h2>
 
-        {/* {pendingAdminRequests.length === 0 ? (
-          <Card className="p-6 text-center">
-            <User className="mx-auto h-12 w-12 text-gray-400 mb-2" />
-            <p className="text-gray-600">No pending admin requests at this time.</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {pendingAdminRequests.map((request) => (
-              <motion.div
-                key={request.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="p-6 shadow-sm">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-mutedTeal" />
-                        <h3 className="font-semibold">{request.name}</h3>
-                      </div>
-                      <p className="text-gray-600 mt-1">Mobile: {request.mobile}</p>
-                    </div>
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                      <Button
-                        onClick={() => handleApprove(request.id)}
-                        className="flex-1 md:flex-initial flex items-center gap-1"
-                        disabled={loading && activeRequest === request.id}
-                      >
-                        <UserCheck size={18} />
-                        <span>Approve</span>
-                      </Button>
-                      <Button
-                        onClick={() => handleReject(request.id)}
-                        variant="destructive"
-                        className="flex-1 md:flex-initial flex items-center gap-1"
-                        disabled={loading && activeRequest === request.id}
-                      >
-                        <UserX size={18} />
-                        <span>Reject</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )} */}
+      
       </div>
     </div>
   );

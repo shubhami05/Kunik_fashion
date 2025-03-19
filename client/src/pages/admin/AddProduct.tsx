@@ -1,12 +1,11 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Upload, X, Plus, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useProducts } from "@/context/ProductContext";
-import { categories } from "@/lib/data";
+import { Category, getCategories } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import useCloudinaryUpload from "@/hooks/useCloudinaryUpload";
 
@@ -32,7 +31,7 @@ const AddProduct: React.FC = () => {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [originalPrice, setOriginalPrice] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<string[]>([]);
   const [sizes, setSizes] = useState<string[]>([]);
   const [color, setColor] = useState("");
   const [stock, setStock] = useState("");
@@ -57,6 +56,32 @@ const AddProduct: React.FC = () => {
     images: "",
     
   });
+
+  // Add state for categories
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+
+  // Add useEffect to fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/categories`);
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        // Only show active categories
+        const activeCategories = data.filter((cat: Category) => cat.isActive);
+        setAvailableCategories(activeCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load categories",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCategories();
+  }, []);
   
   // Size options (for clothing)
   const availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36", "38", "40", "42"];
@@ -245,20 +270,24 @@ const AddProduct: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      // Format the product data to match server expectations
       const newProduct = {
-        name,
-        description,
-        price: Number(price),
-        originalPrice: originalPrice ? Number(originalPrice) : undefined,
-        category,
-        sizes,
-        //color,
-      //  stock: Number(stock),
+        name: name.trim(),
+        description: description.trim(),
+        price: Number(parseFloat(price).toFixed(2)),
+        originalPrice: originalPrice ? Number(parseFloat(originalPrice).toFixed(2)) : undefined,
+        category: category[0], // Send single category string instead of array
+        images: images,
         isNew,
         isFeatured,
-        images,
-        variations,
+        variations: variations.map(v => ({
+          size: v.size,
+          color: v.color,
+          stock: Number(v.stock)
+        }))
       };
+
+      console.log('Sending product data:', newProduct); // Debug log
 
       const response = await fetch(`${BASE_URL}/api/products`, {
         method: "POST",
@@ -268,12 +297,24 @@ const AddProduct: React.FC = () => {
         body: JSON.stringify(newProduct),
       });
 
-      if (!response.ok) throw new Error("Failed to add product");
+      const data = await response.json();
 
-      toast({ title: "Product added", description: `${name} has been added.` });
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to add product");
+      }
+
+      toast({ 
+        title: "Success!", 
+        description: `${name} has been added successfully.` 
+      });
       navigate("/admin/products");
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to add product.", variant: "destructive" });
+    } catch (error: any) {
+      console.error('Error adding product:', error);
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to add product. Please try again.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -384,13 +425,13 @@ const AddProduct: React.FC = () => {
                       <select
                         id="category"
                         value={category}
-                        onChange={(e) => setCategory(e.target.value)}
+                        onChange={(e) => setCategory([e.target.value])}
                         className={`input-field w-full ${errors.category ? "border-red-300 focus:ring-red-200" : ""}`}
                       >
                         <option value="">Select Category</option>
-                        {categories.filter(cat => cat !== "all").map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        {availableCategories.map((cat) => (
+                          <option key={cat._id} value={cat.name}>
+                            {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
                           </option>
                         ))}
                       </select>
@@ -444,32 +485,33 @@ const AddProduct: React.FC = () => {
                     
                     <div className="mb-3">
                       <div className="flex">
-                        {/* <input
-                          type="text"
-                          value={imageUrls}
-                          onChange={(e) => setImageUrls(e.target.value)}
-                          placeholder="Enter image URL"
-                          className="input-field flex-1 rounded-r-none"
-                        /> */}
-
+                        <div className="relative flex-1">
                           <input
-                          type="file"
-                          accept="image/*" 
-                          onChange={handleFileChange}
-                          placeholder="Enter image URL"
-                          className="input-field flex-1 rounded-r-none"
-                        />
+                            type="file"
+                            accept="image/*" 
+                            onChange={handleFileChange}
+                            placeholder="Enter image URL"
+                            className="input-field rounded-r-none"
+                            disabled={uploading}
+                          />
+                          {uploading && (
+                            <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                              <Loader2 size={20} className="animate-spin text-mutedTeal" />
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={handleAddImage}
-                          disabled={uploading} 
-                          className="bg-mutedTeal text-white px-4 py-2 rounded-r-md hover:bg-mutedTeal/90 transition-colors"
+                          disabled={uploading || !imageUrls} 
+                          className={`bg-mutedTeal text-white px-4 py-2 rounded-r-md transition-colors flex items-center justify-center w-12
+                            ${uploading || !imageUrls ? 'opacity-50 cursor-not-allowed' : 'hover:bg-mutedTeal/90'}`}
                         >
                           <Plus size={20} />
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        Add URLs to product images. First image will be the main product image.
+                        {uploading ? 'Uploading image...' : 'Select an image to upload. First image will be the main product image.'}
                       </p>
                     </div>
                     

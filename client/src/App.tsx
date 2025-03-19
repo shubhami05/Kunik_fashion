@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,7 +13,6 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
-import AdminLogin from "./pages/auth/AdminLogin";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
 import AdminAddProduct from "./pages/admin/AddProduct";
@@ -22,7 +20,7 @@ import AdminEditProduct from "./pages/admin/EditProduct";
 import ProductDetail from "./pages/ProductDetail";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import HeroImages from "./pages/admin/HeroImages";
-// import AdminApprovals from "./pages/admin/AdminApprovals";
+import CategoryManager from "@/components/admin/CategoryManager";// Ensure this file exists and the path is correct
 
 const queryClient = new QueryClient();
 
@@ -82,6 +80,14 @@ const App = () => (
                     element={
                       <ProtectedRoute requireAdmin>
                         <HeroImages />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/categories"
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <CategoryManager />
                       </ProtectedRoute>
                     }
                   />

@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Product } from "@/lib/data";
+import { Category, Product } from "@/lib/data";
+import { getCategories } from "@/lib/data";
+
 export type ProductVariation = {
   size: string;
   color: string;
   stock: number;
 };
 
-
-
-type ProductContextType = {
+export interface ProductContextType {
   products: Product[];
   filteredProducts: Product[];
   loading: boolean;
+  fetchProducts: () => Promise<void>;
   currentCategory: string;
   setCategory: (category: string) => void;
   searchProducts: (query: string) => void;
@@ -23,39 +24,68 @@ type ProductContextType = {
   updateVariation: (productId: string, variation: ProductVariation) => void;
   removeVariation: (productId: string, size: string, color: string) => void;
   sortProducts: (sortType: "price-asc" | "price-desc" | "name-asc" | "name-desc") => void;
-};
+  categories: Category[];
+  loadCategories: () => Promise<void>;
+}
 
-const ProductContext = createContext<ProductContextType | undefined>(undefined);
+export const ProductContext = createContext<ProductContextType>({
+  products: [],
+  filteredProducts: [],
+  loading: false,
+  fetchProducts: async () => {},
+  currentCategory: "all",
+  setCategory: () => {},
+  searchProducts: () => {},
+  addProduct: () => {},
+  updateProduct: () => {},
+  deleteProduct: () => {},
+  addVariation: () => {},
+  updateVariation: () => {},
+  removeVariation: () => {},
+  sortProducts: () => {},
+  categories: [],
+  loadCategories: async () => {},
+});
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentCategory, setCurrentCategory] = useState("all");
+  const [categories, setCategories] = useState<Category[]>([]);
   const { toast } = useToast();
 
   // const BASE_URL = "http://localhost:5000";
 
   const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${import.meta.env.VITE_APP_SERVER_URI}/api/products`);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      const data = await response.json();
+      setProducts(data);
+      setFilteredProducts(data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const data = await getCategories();
+      setCategories(data.filter(cat => cat.isActive));
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/api/products`);
-        const data = await response.json();
-        const updatedData = data.map((product: Product) => ({
-          ...product,
-          variations: product.variations ?? [],
-        }));
-        setProducts(updatedData);
-        setFilteredProducts(updatedData);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
+    loadCategories();
   }, []);
 
   const setCategory = (category: string) => {
@@ -189,22 +219,28 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setFilteredProducts(sortedProducts);
       };
 
+  const value = {
+    products,
+    filteredProducts,
+    setFilteredProducts,
+    loading,
+    fetchProducts,
+    currentCategory,
+    setCategory,
+    searchProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    addVariation,
+    updateVariation,
+    removeVariation,
+    sortProducts,
+    categories,
+    loadCategories,
+  };
+
   return (
-    <ProductContext.Provider value={{
-      products,
-      filteredProducts,
-      loading,
-      currentCategory,
-      setCategory,
-      searchProducts,
-      addProduct,
-      updateProduct,
-      deleteProduct,
-      addVariation,
-      updateVariation,
-      removeVariation,
-      sortProducts,
-    }}>
+    <ProductContext.Provider value={value}>
       {children}
     </ProductContext.Provider>
   );

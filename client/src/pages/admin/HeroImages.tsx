@@ -1,17 +1,12 @@
-
-
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import useCloudinaryUpload from "@/hooks/useCloudinaryUpload"; // Import Cloudinary hook
-import { Pencil, Trash, Plus, ArrowLeft, Save, X } from "lucide-react";
+import { Pencil, Trash, Plus, ArrowLeft, Save, X, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-
-
 
 const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
@@ -24,7 +19,7 @@ interface HeroImage {
 
 const HeroImages = () => {
   const { toast } = useToast();
-  const { uploadImage, uploading } = useCloudinaryUpload(); // Cloudinary upload hook
+  const { uploadImage, deleteImage, uploading } = useCloudinaryUpload(); // Cloudinary upload hook
   const [images, setImages] = useState<HeroImage[]>([]);
   const [newImage, setNewImage] = useState({ url: "", title: "", subtitle: "" });
   const [editingImage, setEditingImage] = useState<HeroImage | null>(null);
@@ -53,44 +48,54 @@ const HeroImages = () => {
     }
   };
 
-
-
   const handleAdd = async () => {
     if (!newImage.url || !newImage.title || !newImage.subtitle) {
       toast({ title: "Error", description: "Please fill all fields", variant: "destructive" });
       return;
     }
-  
+
     try {
       const res = await axios.post(`${BASE_URL}/api/hero`, newImage);
-  
+
       // Immediately update the state with the new image
       setImages((prevImages) => [...prevImages, res.data]);
-  
+
       setNewImage({ url: "", title: "", subtitle: "" });
       setIsAddingNew(false);
-  
+
       toast({ title: "Success", description: "Hero image added successfully" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to add hero image", variant: "destructive" });
     }
   };
-  
 
   // Handle deleting an image
   const handleDelete = async (id: string) => {
     try {
+      // Find the image to get its URL
+      const image = images.find((img) => img._id === id);
+      if (!image) return;
+
+      // Delete from Cloudinary first
+      const isDeleted = await deleteImage(image.url);
+      if (!isDeleted) {
+        throw new Error("Failed to delete image from storage");
+      }
+
+      // Then delete from your backend
       await axios.delete(`${BASE_URL}/api/hero/${id}`);
+
+      // Update local state
       setImages(images.filter((img) => img._id !== id));
 
       toast({
         title: "Success",
         description: "Hero image deleted successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete hero image",
+        description: error.message || "Failed to delete hero image",
         variant: "destructive",
       });
     }
@@ -151,27 +156,32 @@ const HeroImages = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="input-field flex-1 rounded-r-none"
-                    disabled={uploading}
-                  />
-                  {uploading && <p className="text-sm text-gray-500">Uploading...</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                  <Input
-                    placeholder="Enter image URL"
-                    value={editingImage ? editingImage.url : newImage.url}
-                    onChange={(e) => {
-                      editingImage
-                        ? setEditingImage({ ...editingImage, url: e.target.value })
-                        : setNewImage({ ...newImage, url: e.target.value });
-                    }}
-                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="input-field w-full"
+                      disabled={uploading}
+                    />
+                    {uploading && (
+                      <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                        <div className="flex items-center space-x-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-mutedTeal" />
+                          <span className="text-sm text-gray-600">Uploading...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {editingImage?.url || newImage.url ? (
+                    <div className="mt-2">
+                      <img
+                        src={editingImage?.url || newImage.url}
+                        alt="Preview"
+                        className="h-32 w-32 object-cover rounded-md"
+                      />
+                    </div>
+                  ) : null}
                 </div>
 
                 <div>
@@ -206,14 +216,22 @@ const HeroImages = () => {
                       <Button variant="outline" onClick={() => setEditingImage(null)}>
                         Cancel
                       </Button>
-                      <Button onClick={handleSaveEdit} disabled={uploading}>
-                        <Save className="w-4 h-4 mr-2" />
+                      <Button onClick={handleSaveEdit} disabled={uploading} className="bg-mutedTeal hover:bg-mutedTeal/90">
+                        {uploading ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
                         Save Changes
                       </Button>
                     </div>
                   ) : (
-                    <Button onClick={handleAdd} disabled={uploading}>
-                      <Plus className="w-4 h-4 mr-2" />
+                    <Button onClick={handleAdd} disabled={uploading} className="bg-mutedTeal hover:bg-mutedTeal/90">
+                      {uploading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4 mr-2" />
+                      )}
                       Add Image
                     </Button>
                   )}
@@ -222,7 +240,7 @@ const HeroImages = () => {
             </div>
           </Card>
         )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((image) => (
             <Card key={image._id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow">
               <img src={image.url} alt={image.title} className="w-full h-48 object-cover" />

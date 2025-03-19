@@ -15,7 +15,13 @@ export type Product = {
     stock: number;
   };
 
-const API_BASE_URL = process.env.VITE_APP_SERVER_URI;// Change this to your backend URL
+export interface Category {
+    _id: string;
+    name: string;
+    isActive: boolean;
+}
+
+const API_BASE_URL = import.meta.env.VITE_APP_SERVER_URI;// Change this to your backend URL
 
 export const fetchProducts = async (): Promise<Product[]> => {
   try {

@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Plus, Package, ShoppingCart, Image, Shield, UserCheck } from "lucide-react";
+import { Plus, Package, ShoppingCart, Image, Shield, UserCheck, Folder, FolderEdit } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const QuickActions: React.FC = () => {
@@ -31,15 +31,6 @@ const QuickActions: React.FC = () => {
           <span>Manage Products</span>
         </Link>
         
-        {/* <Link 
-          to="/admin/orders" 
-          className="bg-white p-4 rounded-lg shadow-sm border border-champagne/20 hover:shadow-md transition-shadow flex items-center"
-        >
-          <div className="p-2 rounded-full bg-dustyRose/10 mr-3">
-            <ShoppingCart size={18} className="text-dustyRose" />
-          </div>
-          <span>View Orders</span>
-        </Link> */}
         
         <Link 
           to="/admin/hero-images" 
@@ -50,8 +41,17 @@ const QuickActions: React.FC = () => {
           </div>
           <span>Manage Hero Images</span>
         </Link>
+        <Link 
+          to="/admin/categories" 
+          className="bg-white p-4 rounded-lg shadow-sm border border-champagne/20 hover:shadow-md transition-shadow flex items-center"
+        >
+          <div className="p-2 rounded-full bg-deep-plum/10 mr-3">
+           <FolderEdit size={18} className="text-amber-600" />
+          </div>
+          <span>Manage Categories</span>
+        </Link>
         
-        {isAdmin && (
+        {/* {isAdmin && (
           <Link 
             to="/admin/approvals" 
             className="bg-white p-4 rounded-lg shadow-sm border border-champagne/20 hover:shadow-md transition-shadow flex items-center relative"
@@ -67,7 +67,7 @@ const QuickActions: React.FC = () => {
               </div>
             )}
           </Link>
-        )}
+        )} */}
       </div>
     </div>
   );

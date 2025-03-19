@@ -26,7 +26,9 @@ const VariationManager: React.FC<VariationManagerProps> = ({
   const [size, setSize] = useState("");
   const [color, setColor] = useState("");
   const [stock, setStock] = useState(0);
-  
+  const [newVariation, setNewVariation] = useState({ size: '', color: '', stock: 0 });
+  const [error, setError] = useState('');
+
   const handleAddNew = () => {
     setIsAdding(true);
     setSize(availableSizes[0] || "");
@@ -78,12 +80,33 @@ const VariationManager: React.FC<VariationManagerProps> = ({
     setColor("");
     setStock(0);
   };
+
+  const handleAdd = () => {
+    if (!newVariation.size || !newVariation.color || newVariation.stock <= 0) {
+      setError('Please fill in all fields with valid values');
+      return;
+    }
+
+    // Check for duplicate variation
+    const isDuplicate = variations.some(
+      v => v.size === newVariation.size && v.color === newVariation.color
+    );
+
+    if (isDuplicate) {
+      setError('This size and color combination already exists');
+      return;
+    }
+
+    onAdd(newVariation);
+    setNewVariation({ size: '', color: '', stock: 0 });
+    setError('');
+  };
   
   return (
-    <div className="mt-4">
+    <div className="mt-4 w-full">
       {/* <h3 className="text-lg font-medium text-gray-900 mb-4">Product Variations</h3> */}
       
-      <div className="flex items-center justify-between">
+      <div className="flex px-4 mb-4 items-center justify-between">
         <h3 className="text-lg font-medium">Stock Variations</h3>
         <Button 
           onClick={handleAddNew} 
@@ -179,10 +202,10 @@ const VariationManager: React.FC<VariationManagerProps> = ({
       )}
       
       {/* Variations Table with Horizontal Scroll */}
-      <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:-mx-8">
-        <div className="inline-block min-w-full align-middle">
+      <div className="overflow-x-auto ">
+        <div className="inline-block w-full align-middle">
           <div className="overflow-hidden shadow-sm ring-1 ring-black ring-opacity-5">
-            <table className="min-w-full divide-y divide-gray-300">
+            <table className="min-w-full divide-y divide-gray-300 lg:px-10">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">

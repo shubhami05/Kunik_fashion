@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -6,20 +5,12 @@ import { ArrowLeft, Upload, X, Plus, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useProducts } from "@/context/ProductContext";
-import { categories, getProductById } from "@/lib/data";
+import { Category, getCategories, getProductById } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import useCloudinaryUpload from "@/hooks/useCloudinaryUpload";
 import VariationManager from "@/components/admin/VariationManager";
 
-
-
-
-
-
-
 const EditProduct: React.FC = () => {
-
-
   // const BASE_URL = 'http://localhost:5000'
   const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
@@ -28,7 +19,7 @@ const EditProduct: React.FC = () => {
   const { updateProduct, addVariation, updateVariation, removeVariation } = useProducts();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -45,11 +36,18 @@ const EditProduct: React.FC = () => {
 
   const { uploadImage, uploading, error } = useCloudinaryUpload();
 
+  const [variations, setVariations] = useState<{ size: string, color: string, stock: number }[]>([]);
 
-  const [variations, setVariations] = useState<{size: string, color: string, stock: number}[]>([]);
+  const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Pink", "Gray", "Navy", "Beige", "Brown"];
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
-const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Pink", "Gray", "Navy", "Beige", "Brown"];
-  
+  // Add these state variables after the existing state declarations
+  const [mainColor, setMainColor] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Add originalImages state to track initial images
+  const [originalImages, setOriginalImages] = useState<string[]>([]);
+
   // Form errors
   const [errors, setErrors] = useState({
     name: "",
@@ -61,7 +59,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
     images: "",
     variations: "",
   });
-  
+
   // Size options (for clothing)
   const availableSizes = ["XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36", "38", "40", "42"];
 
@@ -78,13 +76,12 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
     }
   };
 
-
   useEffect(() => {
     if (!id) return;
-  
+
     const fetchProduct = async () => {
       const product = await getProductById(id);
-  
+
       if (!product) {
         toast({
           title: "Error",
@@ -94,7 +91,10 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
         navigate("/admin/products");
         return;
       }
-  
+
+      // Store original images
+      setOriginalImages(product.images);
+      setImages(product.images);
       setName(product.name);
       setDescription(product.description);
       setPrice(product.price.toString());
@@ -105,21 +105,48 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       //setStock(product.stock.toString());
       setIsNew(product.isNew || false);
       setIsFeatured(product.isFeatured || false);
-      setImages(product.images);
       setVariations(product.variations);
     };
-  
+
     fetchProduct();
   }, [id, navigate, toast]);
-  
-  
-  
+
+  useEffect(() => {
+    if (variations.length > 0) {
+      // Extract unique colors from variations
+      const uniqueColors = [...new Set(variations.map(v => v.color))];
+      setSelectedColors(uniqueColors);
+    }
+  }, [variations]);
+
+  // Add this effect to fetch categories after existing useEffect hooks
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/categories`);
+        if (!response.ok) throw new Error('Failed to fetch categories');
+        const data = await response.json();
+        // Get all categories, not just active ones
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load categories",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   // Load product data
   // useEffect(() => {
   //   if (!id) return;
-    
+
   //   const product = getProductById(id);
-    
+
   //   if (!product) {
   //     toast({
   //       title: "Error",
@@ -129,7 +156,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
   //     navigate("/admin/products");
   //     return;
   //   }
-    
+
   //   setName(product.name);
   //   setDescription(product.description);
   //   setPrice(product.price.toString());
@@ -141,9 +168,9 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
   //   setIsNew(product.isNew || false);
   //   setIsFeatured(product.isFeatured || false);
   //   setImages(product.images);
-    
+
   // }, [id, navigate, toast]);
-  
+
   const handleSizeToggle = (size: string) => {
     if (sizes.includes(size)) {
       setSizes(sizes.filter(s => s !== size));
@@ -151,15 +178,32 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       setSizes([...sizes, size]);
     }
   };
-  
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-  
-      const url = await uploadImage(file);
-      if (url) setImageUrls(url);
-    };
+  const handleColorToggle = (color: string) => {
+    if (selectedColors.includes(color)) {
+      // Only remove if color is not used in variations
+      const isColorInUse = variations.some(v => v.color === color);
+      if (!isColorInUse) {
+        setSelectedColors(selectedColors.filter(c => c !== color));
+      } else {
+        toast({
+          title: "Cannot remove color",
+          description: "This color is being used in product variations",
+          variant: "destructive",
+        });
+      }
+    } else {
+      setSelectedColors([...selectedColors, color]);
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadImage(file);
+    if (url) setImageUrls(url);
+  };
 
   const handleAddImage = () => {
     if (imageUrls.trim()) {
@@ -167,33 +211,46 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       setImageUrls("");
     }
   };
-  
+
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleAddVariation = (variation: {size: string, color: string, stock: number}) => {
+  const handleAddVariation = (variation: { size: string, color: string, stock: number }) => {
     if (!id) return;
+
+    // Check for duplicate variation
+    const isDuplicate = variations.some(
+      v => v.size === variation.size && v.color === variation.color
+    );
+
+    if (isDuplicate) {
+      toast({
+        title: "Error",
+        description: "This size and color combination already exists",
+        variant: "destructive",
+      });
+      return;
+    }
+
     addVariation(id, variation);
     setVariations([...variations, variation]);
   };
-  
-  const handleUpdateVariation = (variation: {size: string, color: string, stock: number}) => {
+
+  const handleUpdateVariation = (variation: { size: string, color: string, stock: number }) => {
     if (!id) return;
     updateVariation(id, variation);
-    setVariations(variations.map(v => 
+    setVariations(variations.map(v =>
       (v.size === variation.size && v.color === variation.color) ? variation : v
     ));
   };
-  
+
   const handleRemoveVariation = (size: string, color: string) => {
     if (!id) return;
     removeVariation(id, size, color);
     setVariations(variations.filter(v => !(v.size === size && v.color === color)));
   };
 
-
-  
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -201,22 +258,22 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       description: "",
       price: "",
       category: "",
-     // color: "",
+      // color: "",
       //stock: "",
       images: "",
       variations: "",
     };
-    
+
     if (!name.trim()) {
       newErrors.name = "Product name is required";
       valid = false;
     }
-    
+
     if (!description.trim()) {
       newErrors.description = "Product description is required";
       valid = false;
     }
-    
+
     if (!price.trim()) {
       newErrors.price = "Price is required";
       valid = false;
@@ -224,22 +281,22 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       newErrors.price = "Price must be a valid positive number";
       valid = false;
     }
-    
+
     if (originalPrice.trim() && (isNaN(Number(originalPrice)) || Number(originalPrice) <= 0)) {
       newErrors.price = "Original price must be a valid positive number";
       valid = false;
     }
-    
+
     if (!category) {
       newErrors.category = "Category is required";
       valid = false;
     }
-    
+
     // if (!color.trim()) {
     //   newErrors.color = "Color is required";
     //   valid = false;
     // }
-    
+
     // if (!stock.trim()) {
     //   newErrors.stock = "Stock is required";
     //   valid = false;
@@ -247,7 +304,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
     //   newErrors.stock = "Stock must be a valid non-negative number";
     //   valid = false;
     // }
-    
+
     if (images.length === 0) {
       newErrors.images = "At least one image is required";
       valid = false;
@@ -257,61 +314,33 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
       newErrors.variations = "At least one variation with stock is required";
       valid = false;
     }
-    
+
     setErrors(newErrors);
     return valid;
   };
-  
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   if (!validateForm() || !id) return;
-    
-  //   setIsSubmitting(true);
-    
-  //   try {
-  //     const updatedProduct = {
-  //       name,
-  //       description,
-  //       price: Number(price),
-  //       originalPrice: originalPrice ? Number(originalPrice) : undefined,
-  //       category,
-  //       sizes,
-  //       color,
-  //       stock: Number(stock),
-  //       isNew,
-  //       isFeatured,
-  //       images,
-  //     };
-      
-  //     updateProduct(id, updatedProduct);
-      
-  //     toast({
-  //       title: "Product updated",
-  //       description: `${name} has been updated successfully`,
-  //     });
-      
-  //     navigate("/admin/products");
-  //   } catch (error) {
-  //     console.error("Error updating product:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to update product. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-  
+
+  // Add function to find removed images
+  const getRemovedImages = () => {
+    return originalImages.filter(img => !images.includes(img));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm() || !id) return;
-  
+
     setIsSubmitting(true);
-  
+
     try {
+      // Find images that were removed
+      const removedImages = getRemovedImages();
+
+      // Delete removed images from Cloudinary
+      if (removedImages.length > 0) {
+        const deletePromises = removedImages.map(imageUrl => deleteImage(imageUrl));
+        await Promise.all(deletePromises);
+      }
+
+      // Update product in database
       const response = await fetch(`${BASE_URL}/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -323,27 +352,30 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
           category,
           sizes,
           //color,
-         // stock: Number(stock),
+          // stock: Number(stock),
           isNew,
           isFeatured,
           images,
           variations,
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to update product");
       }
-  
+
+      // Update original images after successful update
+      setOriginalImages(images);
+
       toast({
         title: "Product updated",
         description: `${name} has been updated successfully`,
       });
-  
+
       navigate("/admin/products");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating product:", error);
       toast({
         title: "Error",
@@ -355,17 +387,37 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
     }
   };
 
-  
+  // Add this color management functions after existing functions
+  const handleAddColor = () => {
+    if (mainColor && !selectedColors.includes(mainColor)) {
+      setSelectedColors([...selectedColors, mainColor]);
+      setMainColor(""); // Clear input after adding
+    }
+  };
+
+  const handleRemoveColor = (color: string) => {
+    // Check if color is in use
+    const isColorInUse = variations.some(v => v.color === color);
+    if (isColorInUse) {
+      toast({
+        title: "Cannot remove color",
+        description: "This color is being used in product variations",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSelectedColors(selectedColors.filter(c => c !== color));
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="flex items-center mb-8">
-            <button 
-              onClick={() => navigate("/admin/products")} 
+            <button
+              onClick={() => navigate("/admin/products")}
               className="flex items-center text-charcoal hover:text-mutedTeal transition-colors mr-4"
             >
               <ArrowLeft size={20} className="mr-1" />
@@ -373,7 +425,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
             </button>
             <h1 className="heading-lg">Edit Product</h1>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-sm border border-champagne/20 p-6">
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -394,7 +446,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                       <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                     )}
                   </div>
-                  
+
                   <div className="mb-6">
                     <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                       Description*
@@ -410,7 +462,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                       <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
@@ -432,7 +484,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                         <p className="mt-1 text-sm text-red-600">{errors.price}</p>
                       )}
                     </div>
-                    
+
                     <div>
                       <label htmlFor="originalPrice" className="block text-sm font-medium text-gray-700 mb-1">
                         Original Price (Optional)
@@ -452,7 +504,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                       <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
@@ -465,92 +517,44 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                         className={`input-field w-full ${errors.category ? "border-red-300 focus:ring-red-200" : ""}`}
                       >
                         <option value="">Select Category</option>
-                        {categories.filter(cat => cat !== "all").map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        {categories.map((cat) => (
+                          <option 
+                            key={cat._id} 
+                            value={cat.name}
+                            // Show indicator for inactive categories
+                            className={!cat.isActive ? "text-gray-400" : ""}
+                          >
+                            {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
+                            {!cat.isActive ? " (Inactive)" : ""}
                           </option>
                         ))}
                       </select>
                       {errors.category && (
                         <p className="mt-1 text-sm text-red-600">{errors.category}</p>
                       )}
-                    </div>
-                    
-                    {/* <div>
-                      <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                        Stock*
-                      </label>
-                      <input
-                        id="stock"
-                        type="number"
-                        min="0"
-                        value={stock}
-                        onChange={(e) => setStock(e.target.value)}
-                        className={`input-field w-full ${errors.stock ? "border-red-300 focus:ring-red-200" : ""}`}
-                      />
-                      {errors.stock && (
-                        <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
+                      {category && !categories.some(cat => cat.name === category) && (
+                        <p className="mt-1 text-xs text-amber-600">
+                          Selected category may have been deleted or renamed
+                        </p>
                       )}
-                    </div>*/}
-                  </div> 
-                  
-                  {/* <div className="mb-6">
-                    <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
-                      Color*
-                    </label>
-                    <input
-                      id="color"
-                      type="text"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className={`input-field w-full ${errors.color ? "border-red-300 focus:ring-red-200" : ""}`}
-                      placeholder="e.g. Navy Blue, Crimson, etc."
-                    />
-                    {errors.color && (
-                      <p className="mt-1 text-sm text-red-600">{errors.color}</p>
-                    )}
-                  </div> */}
-
-                  <div className="mb-6">
-                  
-                    <VariationManager 
-                      variations={variations}
-                      availableColors={availableColors}
-                      availableSizes={sizes}
-                      onAdd={handleAddVariation}
-                      onUpdate={handleUpdateVariation}
-                      onRemove={handleRemoveVariation}
-                    />
-                    {errors.variations && (
-                      <p className="mt-1 text-sm text-red-600">{errors.variations}</p>
-                    )}
-                    <div className="mt-2 text-sm text-gray-500">
-                      <p>Total Stock: {variations.reduce((sum, v) => sum + v.stock, 0)} units</p>
                     </div>
                   </div>
-
                 </div>
-                
+
                 {/* Right Column */}
                 <div>
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Images*
                     </label>
-                    
+
                     <div className="mb-3">
                       <div className="flex">
-                        {/* <input
-                          type="text"
-                          value={imageUrls}
-                          onChange={(e) => setImageUrls(e.target.value)}
-                          placeholder="Enter image URL"
-                          className="input-field flex-1 rounded-r-none"
-                        /> */}
+                  
 
                         <input
                           type="file"
-                          accept="image/*" 
+                          accept="image/*"
                           onChange={handleFileChange}
                           placeholder="Enter image URL"
                           className="input-field flex-1 rounded-r-none"
@@ -559,7 +563,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                         <button
                           type="button"
                           onClick={handleAddImage}
-                          disabled={uploading} 
+                          disabled={uploading}
                           className="bg-mutedTeal text-white px-4 py-2 rounded-r-md hover:bg-mutedTeal/90 transition-colors"
                         >
                           <Plus size={20} />
@@ -569,18 +573,18 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                         Add URLs to product images. First image will be the main product image.
                       </p>
                     </div>
-                    
+
                     {errors.images && (
                       <p className="mt-1 text-sm text-red-600 mb-2">{errors.images}</p>
                     )}
-                    
+
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {images.map((image, index) => (
                         <div key={index} className="relative group rounded-md overflow-hidden h-24 border border-gray-200">
-                          <img 
-                            src={image} 
-                            alt={`Product ${index + 1}`} 
-                            className="w-full h-full object-cover" 
+                          <img
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <button
@@ -598,7 +602,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                           )}
                         </div>
                       ))}
-                      
+
                       {images.length === 0 && (
                         <div className="border border-dashed border-gray-300 rounded-md h-24 flex items-center justify-center bg-gray-50">
                           <div className="text-center text-gray-500">
@@ -609,7 +613,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Available Sizes
@@ -620,11 +624,10 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                           key={size}
                           type="button"
                           onClick={() => handleSizeToggle(size)}
-                          className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                            sizes.includes(size)
-                              ? "bg-mutedTeal text-white"
-                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                          }`}
+                          className={`px-3 py-1 rounded-md text-sm transition-colors ${sizes.includes(size)
+                            ? "bg-mutedTeal text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
                         >
                           {size}
                         </button>
@@ -636,7 +639,49 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                       </p>
                     )}
                   </div>
-                  
+
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Available Colors
+                    </label>
+                    <div className="flex mb-2">
+                      <input
+                        type="text"
+                        value={mainColor}
+                        onChange={(e) => setMainColor(e.target.value)}
+                        placeholder="Add a color"
+                        className="input-field flex-1 rounded-r-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddColor}
+                        className="bg-mutedTeal text-white px-4 py-2 rounded-r-md hover:bg-mutedTeal/90 transition-colors"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedColors.map(color => (
+                        <div key={color} className="bg-gray-100 rounded-full px-3 py-1 flex items-center">
+                          <span className="text-sm">{color}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveColor(color)}
+                            className="ml-2 text-gray-500 hover:text-red-500"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedColors.length === 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Add colors for product variations
+                      </p>
+                    )}
+                  </div>
+
                   <div className="mb-6">
                     <div className="flex items-center mb-4">
                       <input
@@ -650,7 +695,7 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                         Mark as New Arrival
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center">
                       <input
                         id="isFeatured"
@@ -666,7 +711,33 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
                   </div>
                 </div>
               </div>
-              
+
+              {/* Stock Variations - Full Width */}
+              {/* Add the variation manager here, outside the grid */}
+              {/* Stock Variations */}
+              <div className="mt-6 mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product Variations*
+                </label>
+                <div className="w-auto bg-white rounded-lg border border-gray-200">
+                  <VariationManager
+                    variations={variations}
+                    availableColors={selectedColors} // Changed from availableColors
+                    availableSizes={sizes} // Changed from availableSizes
+                    onAdd={handleAddVariation}
+                    onUpdate={handleUpdateVariation}
+                    onRemove={handleRemoveVariation}
+                  />
+                </div>
+                {errors.variations && (
+                  <p className="mt-1 text-sm text-red-600">{errors.variations}</p>
+                )}
+                <div className="mt-2 text-sm text-gray-500">
+                  <p>Total Stock: {variations.reduce((sum, v) => sum + v.stock, 0)} units</p>
+                </div>
+              </div>
+
+              {/* Form Actions */}
               <div className="border-t border-gray-200 pt-6 mt-6 flex justify-end">
                 <button
                   type="button"
@@ -694,10 +765,14 @@ const availableColors = ["Black", "White", "Red", "Blue", "Green", "Yellow", "Pu
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
 };
 
 export default EditProduct;
+function deleteImage(imageUrl: string): any {
+  throw new Error("Function not implemented.");
+}
+

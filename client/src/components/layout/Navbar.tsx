@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
 
   const scrollToSection = (id: string) => {
     setIsMobileMenuOpen(false);
-    
+
     // Check if we're not on the home page
     if (location.pathname !== '/') {
       // Navigate to home page first
@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
       }, 500); // Increased delay for mobile and scroll to top
       return;
     }
-    
+
     // If we're already on home page, add a small delay for mobile menu to close
     setTimeout(() => {
       const element = document.getElementById(id);
@@ -62,7 +62,8 @@ const Navbar: React.FC = () => {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md py-3 shadow-sm"
+      className={`fixed top-0 left-0 right-0 z-50 py-3 shadow-sm ${isMobileMenuOpen ? 'bg-white' : 'bg-white/80 backdrop-blur-md'
+        }`}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
@@ -150,7 +151,7 @@ const Navbar: React.FC = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white shadow-md"
+            className="md:hidden bg-white" // Changed to solid white
           >
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
               <button
@@ -196,18 +197,19 @@ const Navbar: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Link
-                    to="/auth/login"
-                    className="p-2 text-charcoal hover:text-mutedTeal transition-colors duration-300"
-                  >
-                    Login
-                  </Link>
+
                   <Link
                     to="/wishlist"
                     className="p-2 text-charcoal hover:text-mutedTeal transition-colors duration-300"
                   >
                     Wishlist
                   </Link>
+                  <Link
+                    to="/auth/login"
+                    className="p-2 text-charcoal hover:text-mutedTeal transition-colors duration-300"
+                  >
+                    Login
+                  </Link> 
                 </>
               )}
             </div>

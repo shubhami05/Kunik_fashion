@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import { useProducts } from "@/context/ProductContext";
 import { Loader2 } from "lucide-react";
 import { Product } from "@/lib/data";
-
+import { fetchProducts } from "@/lib/api";
 
 interface ProductListProps {
   limit?: number;
@@ -21,6 +20,19 @@ const ProductList: React.FC<ProductListProps> = ({
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [currentLimit, setCurrentLimit] = useState(limit || 8);
 
+  // Add effect to handle initial load and refetch
+  useEffect(() => {
+    fetchProducts();
+    
+    // Set up polling for product updates
+    const intervalId = setInterval(() => {
+      fetchProducts();
+    }, 30000); // Poll every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // Update visible products when filtered products change
   useEffect(() => {
     const pro = filteredProducts.slice(0, currentLimit);
     setVisibleProducts(pro);

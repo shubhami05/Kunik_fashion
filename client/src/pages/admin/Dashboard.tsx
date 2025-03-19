@@ -26,28 +26,7 @@ const Dashboard: React.FC = () => {
       icon: <Package className="text-mutedTeal" />,
       bgColor: "bg-mutedTeal/10",
       link: "/admin/products"
-    },
-    // {
-    //   title: "Users",
-    //   value: 24, // Mock value
-    //   icon: <Users className="text-champagne" />,
-    //   bgColor: "bg-champagne/10",
-    //   link: "/admin/users"
-    // },
-    // {
-    //   title: "Orders",
-    //   value: 12, // Mock value
-    //   icon: <ShoppingCart className="text-dustyRose" />,
-    //   bgColor: "bg-dustyRose/10",
-    //   link: "/admin/orders"
-    // },
-    // {
-    //   title: "Revenue",
-    //   value: "$2,845", // Mock value
-    //   icon: <TrendingUp className="text-deep-plum" />,
-    //   bgColor: "bg-[#593C50]/10",
-    //   link: "/admin/revenue"
-    // }
+    }
   ];
   
   return (
