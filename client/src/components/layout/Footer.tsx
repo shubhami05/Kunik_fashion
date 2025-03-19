@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-1">
-            <img src="/logo.jpg" alt="Kunik Fashion" width={100} height={100} className="mb-5" />
+            <img src="/logo.jpg" alt="Kunik Fashion" width={80} height={80} className="mb-5" />
             <Link to="/" className="text-2xl font-light text-charcoal mb-4 inline-block">
               <span className="font-extrabold">KUNIK</span>FASHION
             </Link>
