@@ -34,7 +34,7 @@ const EditProduct: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
   const [imageUrls, setImageUrls] = useState<string>("");
 
-  const { uploadImage, uploading, error } = useCloudinaryUpload();
+  const { uploadImage, uploading, error,deleteImage } = useCloudinaryUpload();
 
   const [variations, setVariations] = useState<{ size: string, color: string, stock: number }[]>([]);
 
@@ -78,10 +78,10 @@ const EditProduct: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-
+  
     const fetchProduct = async () => {
       const product = await getProductById(id);
-
+  
       if (!product) {
         toast({
           title: "Error",
@@ -91,7 +91,7 @@ const EditProduct: React.FC = () => {
         navigate("/admin/products");
         return;
       }
-
+  
       // Store original images
       setOriginalImages(product.images);
       setImages(product.images);
@@ -100,14 +100,13 @@ const EditProduct: React.FC = () => {
       setPrice(product.price.toString());
       setOriginalPrice(product.originalPrice?.toString() || "");
       setCategory(product.category);
-      setSizes(product.sizes);
+      setSizes(product.sizes); // Ensure sizes are set from the product
       setColor(product.color);
-      //setStock(product.stock.toString());
       setIsNew(product.isNew || false);
       setIsFeatured(product.isFeatured || false);
       setVariations(product.variations);
     };
-
+  
     fetchProduct();
   }, [id, navigate, toast]);
 
@@ -518,8 +517,8 @@ const EditProduct: React.FC = () => {
                       >
                         <option value="">Select Category</option>
                         {categories.map((cat) => (
-                          <option 
-                            key={cat._id} 
+                          <option
+                            key={cat._id}
                             value={cat.name}
                             // Show indicator for inactive categories
                             className={!cat.isActive ? "text-gray-400" : ""}
@@ -550,7 +549,7 @@ const EditProduct: React.FC = () => {
 
                     <div className="mb-3">
                       <div className="flex">
-                  
+
 
                         <input
                           type="file"
@@ -772,7 +771,5 @@ const EditProduct: React.FC = () => {
 };
 
 export default EditProduct;
-function deleteImage(imageUrl: string): any {
-  throw new Error("Function not implemented.");
-}
+
 

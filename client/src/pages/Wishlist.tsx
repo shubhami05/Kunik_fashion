@@ -104,15 +104,15 @@ const Wishlist = () => {
                         {product.originalPrice ? (
                           <>
                             <span className="text-dustyRose font-medium">
-                              ${product.price.toFixed(2)}
+                              Rs.{product.price.toFixed(2)}
                             </span>
                             <span className="ml-2 text-sm text-gray-400 line-through">
-                              ${product.originalPrice.toFixed(2)}
+                              Rs.{product.originalPrice.toFixed(2)}
                             </span>
                           </>
                         ) : (
                           <span className="font-medium text-charcoal">
-                            ${product.price.toFixed(2)}
+                            Rs.{product.price.toFixed(2)}
                           </span>
                         )}
                       </div>
