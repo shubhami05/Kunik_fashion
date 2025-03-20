@@ -11,6 +11,7 @@ const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
 import { HeroImage } from "@/lib/data";
 import ProductFeatured from "@/components/ui/ProductFeatured";
+import {  LucideLoaderPinwheel } from "lucide-react";
 
 const Index: React.FC = () => {
   const location = useLocation();
@@ -20,10 +21,12 @@ const Index: React.FC = () => {
   }, [location]);
 
   const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
+  const [isLoading,setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHeroImages = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`${BASE_URL}/api/hero`);
         if (!response.ok) throw new Error("Failed to fetch hero images");
 
@@ -42,11 +45,20 @@ const Index: React.FC = () => {
       catch (error) {
         console.error("Error fetching hero images:", error);
       }
+      finally{
+        setLoading(false);
+      }
     };
 
     fetchHeroImages();
   }, []);
 
+  if (isLoading) {
+    return <div className="min-h-screen min-w-screen flex items-center justify-center">
+      <LucideLoaderPinwheel className="h-10 w-10 animate-spin text-cyan-800" />
+      
+    </div>;
+  }
   return (
     <div className="min-h-screen">
       <Navbar />
