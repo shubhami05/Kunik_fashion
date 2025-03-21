@@ -10,7 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductList from "@/components/ui/ProductList";
 import { Button } from "@/components/ui/button";
-import { Product } from "@/lib/data"
+import { createOrderMessage, Product } from "@/lib/data"
 
 
 import { getAvailableColors, getAvailableSizes, getVariationStock } from "@/lib/data";
@@ -159,8 +159,8 @@ const ProductDetail: React.FC = () => {
     const productUrl = `${window.location.origin}/product/${product.id}`;
 
     // Create the WhatsApp message with product details
-    const message = `I'm interested in ordering:\n\n*Product:* ${product.name}\n*Link:* ${productUrl}\n*Price:* $${product.price.toFixed(2)}\n*Color:* ${selectedColor}\n*Size:* ${selectedSize}\n*Quantity:* ${quantity}\n\nPlease assist me with this order.`;
-
+    // const message = `I'm interested in ordering:\n\n*Product:* ${product.name}\n*Link:* ${productUrl}\n*Price:* Rs.${product.price.toFixed(2)}\n*Color:* ${selectedColor}\n*Size:* ${selectedSize}\n*Quantity:* ${quantity}\n\nPlease assist me with this order.`;
+    const message = createOrderMessage(product, productUrl, selectedColor, selectedSize, quantity);
     // Encode the message for the URL
     const encodedMessage = encodeURIComponent(message);
 
@@ -244,13 +244,13 @@ const ProductDetail: React.FC = () => {
 
               <div className="flex items-center mb-6">
                 <span className="text-2xl font-medium text-charcoal">
-                  ${product.price.toFixed(2)}
+                  Rs.{product.price.toFixed(2)}
                 </span>
 
                 {product.originalPrice && (
                   <>
                     <span className="ml-3 text-lg text-gray-400 line-through">
-                      ${product.originalPrice.toFixed(2)}
+                      Rs.{product.originalPrice.toFixed(2)}
                     </span>
                     <span className="ml-3 bg-dustyRose/10 text-dustyRose px-2 py-1 rounded text-sm font-medium">
                       {discount}% OFF
@@ -264,14 +264,6 @@ const ProductDetail: React.FC = () => {
                 <p className="text-gray-600">{product.description}</p>
               </div>
 
-              {/* <div className="mb-6">
-                <h3 className="text-lg font-medium mb-2">Availability</h3>
-                <p className={`${product.stock > 0 ? "text-green-600" : "text-red-500"}`}>
-                  {product.stock > 0 
-                    ? `In Stock (${product.stock} available)` 
-                    : "Out of Stock"}
-                </p>
-              </div> */}
 
 
               <div className="mb-6">

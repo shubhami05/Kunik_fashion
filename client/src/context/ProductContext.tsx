@@ -55,8 +55,6 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [categories, setCategories] = useState<Category[]>([]);
   const { toast } = useToast();
 
-  // const BASE_URL = "http://localhost:5000";
-
   const BASE_URL = import.meta.env.VITE_APP_SERVER_URI;
 
   const fetchProducts = async () => {

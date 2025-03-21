@@ -11,7 +11,6 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import Cart from "./pages/Cart";
 import Wishlist from "./pages/Wishlist";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminProducts from "./pages/admin/Products";
@@ -57,8 +56,6 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/auth/login" element={<Login />} />
                     <Route path="/auth/register" element={<Register />} />
-                    {/* <Route path="/auth/admin-login" element={<AdminLogin />} /> */}
-                    <Route path="/cart" element={<Cart />} />
                     <Route path="/wishlist" element={<Wishlist />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
 

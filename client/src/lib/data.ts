@@ -4,6 +4,16 @@ export type ProductVariation = {
   stock: number;
 };
 
+export const createOrderMessage = (
+  product: Product,
+  productUrl: string,
+  selectedColor: string,
+  selectedSize: string,
+  quantity: number
+): string => {
+  return `I'm interested in ordering:\n\n*Product:* ${product.name}\n*Link:* ${productUrl}\n*Price:* Rs.${product.price.toFixed(2)}\n*Color:* ${selectedColor}\n*Size:* ${selectedSize}\n*Quantity:* ${quantity}\n\nPlease assist me with this order.`;
+};
+
 export interface Category {
   [x: string]: any;
   _id: string;
@@ -32,7 +42,7 @@ export type Product = {
   isNew?: boolean;
   isFeatured?: boolean;
   stock: number;
-  variations:ProductVariation[];
+  variations: ProductVariation[];
 };
 
 export const addCategory = async (name: string) => {
@@ -343,11 +353,11 @@ export const getNewArrivals = (): Product[] => {
 
 export const validateUser = (mobile: string, password: string): User | undefined => {
   const user = users.find(user => user.mobile === mobile && user.password === password);
-  
+
   if (user && user.isAdmin && !user.isApproved) {
     return { ...user, isPendingApproval: true };
   }
-  
+
   return user;
 };
 
@@ -367,7 +377,7 @@ export const getPendingAdminRequests = (): User[] => {
 export const approveAdmin = (userId: string): boolean => {
   const userIndex = users.findIndex(user => user.id === userId);
   if (userIndex === -1) return false;
-  
+
   users[userIndex] = { ...users[userIndex], isApproved: true };
   return true;
 };
@@ -385,7 +395,7 @@ export const addUser = (user: User): void => {
   } else {
     user.isApproved = true;
   }
-  
+
   users.push(user);
 };
 

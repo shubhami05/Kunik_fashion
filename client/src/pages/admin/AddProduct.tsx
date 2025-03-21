@@ -199,18 +199,7 @@ const AddProduct: React.FC = () => {
       valid = false;
     }
     
-    // if (!color.trim()) {
-    //   newErrors.color = "Color is required";
-    //   valid = false;
-    //}
-    
-    // if (!stock.trim()) {
-    //   newErrors.stock = "Stock is required";
-    //   valid = false;
-    // } else if (isNaN(Number(stock)) || Number(stock) < 0) {
-    //   newErrors.stock = "Stock must be a valid non-negative number";
-    //   valid = false;
-    // }
+   
     
     if (images.length === 0) {
       newErrors.images = "At least one image is required";
@@ -221,47 +210,6 @@ const AddProduct: React.FC = () => {
     return valid;
   };
   
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-    
-  //   if (!validateForm()) return;
-    
-  //   setIsSubmitting(true);
-    
-  //   try {
-  //     const newProduct = {
-  //       name,
-  //       description,
-  //       price: Number(price),
-  //       originalPrice: originalPrice ? Number(originalPrice) : undefined,
-  //       category,
-  //       sizes,
-  //       color,
-  //       stock: Number(stock),
-  //       isNew,
-  //       isFeatured,
-  //       images,
-  //     };
-      
-  //     addProduct(newProduct);
-      
-  //     toast({
-  //       title: "Product added",
-  //       description: `${name} has been added to your store`,
-  //     });
-      
-  //     navigate("/admin/products");
-  //   } catch (error) {
-  //     console.error("Error adding product:", error);
-  //     toast({
-  //       title: "Error",
-  //       description: "Failed to add product. Please try again.",
-  //       variant: "destructive",
-  //     });
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -382,7 +330,7 @@ const AddProduct: React.FC = () => {
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500">$</span>
+                          <span className="text-gray-500">Rs.</span>
                         </div>
                         <input
                           id="price"
@@ -403,7 +351,7 @@ const AddProduct: React.FC = () => {
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500">$</span>
+                          <span className="text-gray-500">Rs.</span>
                         </div>
                         <input
                           id="originalPrice"
@@ -439,41 +387,10 @@ const AddProduct: React.FC = () => {
                         <p className="mt-1 text-sm text-red-600">{errors.category}</p>
                       )}
                     </div>
-                    
-                    {/* <div>
-                      <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-                        Stock*
-                      </label>
-                      <input
-                        id="stock"
-                        type="number"
-                        min="0"
-                        value={stock}
-                        onChange={(e) => setStock(e.target.value)}
-                        className={`input-field w-full ${errors.stock ? "border-red-300 focus:ring-red-200" : ""}`}
-                      />
-                      {errors.stock && (
-                        <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
-                      )}
-                    </div> */}
+                  
                   </div>
                   
-                  {/* <div className="mb-6">
-                    <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-1">
-                      Color*
-                    </label>
-                    <input
-                      id="color"
-                      type="text"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className={`input-field w-full ${errors.color ? "border-red-300 focus:ring-red-200" : ""}`}
-                      placeholder="e.g. Navy Blue, Crimson, etc."
-                    />
-                    {errors.color && (
-                      <p className="mt-1 text-sm text-red-600">{errors.color}</p>
-                    )}
-                  </div> */}
+                 
                 </div>
                 
                 {/* Right Column */}

@@ -264,10 +264,10 @@ const AdminProducts: React.FC = () => {
                         {product.category}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">${product.price.toFixed(2)}</div>
+                        <div className="text-sm text-gray-900">Rs.{product.price.toFixed(2)}</div>
                         {product.originalPrice && (
                           <div className="text-xs text-gray-500 line-through">
-                            ${product.originalPrice.toFixed(2)}
+                            Rs.{product.originalPrice.toFixed(2)}
                           </div>
                         )}
                       </td>
